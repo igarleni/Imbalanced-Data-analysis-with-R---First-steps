@@ -47,7 +47,7 @@ tnr <- sum(subclus$Class[as.vector(CVperm)] == 1 & knn.pred == 2) / nClass1
 gmean <- sqrt(tpr * tnr)
 
 
-# 1. ROS
+# 1. ROS (Random Oversampling)
 knn.pred = NULL
 for( i in 1:5){
   
@@ -72,7 +72,7 @@ tpr.ROS <- sum(subclus$Class[as.vector(CVperm)] == 0 & knn.pred == 1) / nClass0
 tnr.ROS <- sum(subclus$Class[as.vector(CVperm)] == 1 & knn.pred == 2) / nClass1
 gmean.ROS <- sqrt(tpr.ROS * tnr.ROS)
 
-# 2. RUS
+# 2. RUS (Random Undersampling)
 knn.pred = NULL
 for( i in 1:5){
   
@@ -128,17 +128,16 @@ plot(circle$Att1, circle$Att2)
 points(circle[circle$Class==0,1],circle[circle$Class==0,2],col="red")
 points(circle[circle$Class==1,1],circle[circle$Class==1,2],col="blue")  
 
-# Set up the dataset for 5 fold cross validation.
-# Make sure to respect the class imbalance in the folds.
-pos <- which(circle, Class = 0)
-neg <- which(circle, Class = 1)
+# Separamos en 5fcv manteniendo el ratio de imbalanceo
+pos <- (1:dim(circle)[1])[circle$Class==0]
+neg <- (1:dim(circle)[1])[circle$Class==1]
 
 CVperm_pos <- matrix(sample(pos,length(pos)), ncol=5, byrow=T)
 CVperm_neg <- matrix(sample(neg,length(neg)), ncol=5, byrow=T)
 
 CVperm <- rbind(CVperm_pos, CVperm_neg)
 
-# Base performance of 3NN
+# Aplicamos KNN con K = 3
 library(class)
 knn.pred = NULL
 for( i in 1:5){
@@ -152,10 +151,9 @@ tnr <- sum(circle$Class[as.vector(CVperm)] == 1 & knn.pred == 2) / nClass1
 gmean <- sqrt(tpr * tnr)
 
 
-# 1. ROS
+# 1. ROS (Random Oversampling)
 knn.pred = NULL
 for( i in 1:5){
-  
   train <- circle[-CVperm[,i], -3]
   classes.train <- circle[-CVperm[,i], 3] 
   test  <- circle[CVperm[,i], -3]
@@ -177,7 +175,8 @@ tpr.ROS <- sum(circle$Class[as.vector(CVperm)] == 0 & knn.pred == 1) / nClass0
 tnr.ROS <- sum(circle$Class[as.vector(CVperm)] == 1 & knn.pred == 2) / nClass1
 gmean.ROS <- sqrt(tpr.ROS * tnr.ROS)
 
-# 2. RUS
+
+# 2. RUS (Random Undersampling)
 knn.pred = NULL
 for( i in 1:5){
   
@@ -247,22 +246,26 @@ getNeighbors <- function(x, minority.instances, train)
 ##Para testear
 #getNeighbors(pos[1],pos, subclus)
 
-
 # 2.4.3 syntheticInstance
+train = circle
+minority.instances = pos
+x = pos[1]
+
 
 syntheticInstance <- function(x, minority.instances, train)
 {
   ## Calculamos los 5 primeros vecinos
   neighbor.index.list = getNeighbors(x,minority.instances, train)
   ## Extraemos un vecino aleatorio
-  neighbor.index = neighbor.list[round(runif(1,1,length(neighbor.list)))]
+  neighbor.index = neighbor.index.list[round(runif(1,1,length(neighbor.index.list)))]
   ##Obtenemos un valor entre 0 y 1 que indicara el grado
   ##de semejanza a un dato u otro (0 igual a x, 1 igual a vecino)
   similarity = runif(1)
   ##calculo del punto x (valor entre los datos usando similarity)
-  
+  distan = c(train[x,1]-train[neighbor.index,1],train[x,2]-train[neighbor.index,2]);
+  new.instance = train[x,-3] + similarity * distan;
+  new.instance = cbind (new.instance, train[x,3])
   ##calculo del punto y a traves de la funcion de la recta (bidimensional)
-  
+  return (new.instance)
 }
 
-syntheticInstance(pos[1],pos, subclus)
