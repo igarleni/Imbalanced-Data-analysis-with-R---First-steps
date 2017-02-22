@@ -269,3 +269,82 @@ syntheticInstance <- function(x, minority.instances, train)
   return (new.instance)
 }
 
+
+##########################
+#### borderline-SMOTE ####
+##########################
+
+#uses distance function of normal SMOTE
+
+#get K neighbors from minority instances
+getKNeighbors <- function(x, k, minority.instances, train)
+{
+  distance.vector = sapply(minority.instances, distance, x, train)
+  distance.and.index = cbind(distance.vector, minority.instances)
+  distance.and.index = distance.and.index[order(distance.vector),]
+  if (k > length(distance.and.index))
+    return (distance.and.index[-1,2])
+  else
+    return (distance.and.index[2:(k+1),2])
+}
+
+##Get M neighbors(index) of x
+getNeighborsBorderline <- function(x, m, data)
+{
+  distance.vector = sapply(x, distance,1:dim(data)[1], data)
+  distance.and.index = cbind(distance.vector, 1:dim(distance.vector)[1])
+  distance.and.index = distance.and.index[order(distance.vector),]
+  return (distance.and.index[2:(m+1),2])
+}
+#getNeighborsBorderline(1,5, train)
+
+# M = number of neighbors
+# K = number of possitive neighbors
+# s = number of sythetic instances for each DANGER positive instance
+
+syntheticInstancesBorderline <- function(m, k, s, positive.instances, data)
+{
+  # search DANGER positive instances
+  danger = NULL
+  for (i in positive.instances)
+  {
+    # Calculate its M nearest neighbors
+    neighbors.index.m = getNeighborsBorderline(i, m, data)
+    # Check if its in DANGER and who not (M' is number of negative neighbors)
+    mPos = length(intersect(neighbors.index.m, positive.instances))
+    mNeg = length(neighbors.index.m) - mPos
+    # M' = M (noise)
+    # M/2 <= M' < M (DANGER)
+    # Others M' < M/2 (safe)
+    if (mNeg < m && mNeg > (m/2))
+    {
+      mNeg
+      danger = cbind(danger, i)
+    }
+    
+  }
+  # for each DANGER instance
+  syntheticInstances = NULL
+  for (i in danger)
+  {
+    # calculate its k nearest neighbors of Positive instances
+    # and select a random S neighbors (S must be in 1:k)
+    neighbors.index.s = sample(getKNeighbors(i, k, positive.instances, data), s)
+    #generate synthetic instances from i to all neighbors.index.s
+    for (j in neighbors.index.s)
+    {
+      similarity = runif(1)
+      ##calculo del punto x (valor entre los datos usando similarity)
+      distan = c(data[x,1]-data[j,1],data[x,2]-data[j,2]);
+      new.instance = data[x,-3] + similarity * distan;
+      new.instance = cbind (new.instance, data[x,3])
+      colnames(new.instance) = colnames(data)
+      syntheticInstances = rbind(new.instance, syntheticInstances)
+    }
+  }
+  return (syntheticInstances);
+}
+
+# test call
+#syntheticInstances = syntheticInstancesBorderline(50, 7, 4, pos, circle)
+
