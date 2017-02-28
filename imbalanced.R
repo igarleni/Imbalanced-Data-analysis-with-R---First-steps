@@ -358,17 +358,11 @@ library(unbalanced)
 #prepare data
 subclus <- read.table("subclus.txt", sep=",")
 colnames(subclus) <- c("Att1", "Att2", "Class")
-
 subclus$Class = as.factor((subclus$Class - 1) * (-1))
-subclusPos <- (1:dim(subclus)[1])[subclus$Class==1]
-subclusNeg <- (1:dim(subclus)[1])[subclus$Class==0]
 
 circle <- read.table("circle.txt", sep=",")
 colnames(circle) <- c("Att1", "Att2", "Class")
-
 circle$Class = as.factor((circle$Class - 1) * (-1))
-circlePos <- (1:dim(circle)[1])[circle$Class==1]
-circleNeg <- (1:dim(circle)[1])[circle$Class==0]
 
 
 #####################
@@ -377,16 +371,18 @@ circleNeg <- (1:dim(circle)[1])[circle$Class==0]
 ## subclus
 #SMOTE
 n<-ncol(subclus)
-output<-subclus$Class
+output<-factor(subclus$Class)
 input<-subclus[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubSMOTE", percOver=300, percUnder=150, verbose=TRUE)
 balancedData<-cbind(data$X,data$Y)
+colnames(balancedData) <- c("Att1", "Att2", "Class")
 #TomekLinks
 n<-ncol(balancedData)
 output<-balancedData$Class
 input<-balancedData[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubTomek", percOver=300, percUnder=150, verbose=TRUE)
 subclusBalancedData<-cbind(data$X,data$Y)
+colnames(subclusBalancedData) <- c("Att1", "Att2", "Class")
 
 ## circle
 #SMOTE
@@ -395,14 +391,14 @@ output<-circle$Class
 input<-circle[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubSMOTE", percOver=300, percUnder=150, verbose=TRUE)
 balancedData<-cbind(data$X,data$Y)
+colnames(balancedData) <- c("Att1", "Att2", "Class")
 #TomekLinks
 n<-ncol(balancedData)
 output<-balancedData$Class
 input<-balancedData[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubTomek", percOver=300, percUnder=150, verbose=TRUE)
 circleBalancedData<-cbind(data$X,data$Y)
-
-## comparison
+colnames(circleBalancedData) <- c("Att1", "Att2", "Class")
 
 
 ##############
@@ -411,16 +407,18 @@ circleBalancedData<-cbind(data$X,data$Y)
 ## subclus
 #SMOTE
 n<-ncol(subclus)
-output<-subclus$Class
+output<-factor(subclus$Class)
 input<-subclus[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubSMOTE", percOver=300, percUnder=150, verbose=TRUE)
 balancedData<-cbind(data$X,data$Y)
+colnames(balancedData) <- c("Att1", "Att2", "Class")
 #ENN
 n<-ncol(balancedData)
 output<-balancedData$Class
 input<-balancedData[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubENN", percOver=300, percUnder=150, verbose=TRUE)
 subclusBalancedData<-cbind(data$X,data$Y)
+colnames(subclusBalancedData) <- c("Att1", "Att2", "Class")
 
 ## circle
 #SMOTE
@@ -429,13 +427,11 @@ output<-circle$Class
 input<-circle[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubSMOTE", percOver=300, percUnder=150, verbose=TRUE)
 balancedData<-cbind(data$X,data$Y)
+colnames(balancedData) <- c("Att1", "Att2", "Class")
 #ENN
 n<-ncol(balancedData)
 output<-balancedData$Class
 input<-balancedData[ ,-n]
 data<-ubBalance(X= input, Y=output, type="ubENN", percOver=300, percUnder=150, verbose=TRUE)
 circleBalancedData<-cbind(data$X,data$Y)
-
-
-#comparison
-
+colnames(circleBalancedData) <- c("Att1", "Att2", "Class")
